@@ -1,0 +1,26 @@
+Theoretical Background
+
+ The Watchdog Timer is typically used to trigger a system reset after a certain amount of time. In most examples, you will see that this timer is stopped during the first line of code. The Watchdog Timer counts down from a specified value and either resets or interrupts when overflow is reached. A way to use this timer is to periodically service it by resetting its counter so that the system “knows” that everything is all right and there is no reset required. In this case, this module is configured as an interval timer to generate interrupts at selected time intervals.
+Low power mode is a feature for which the MSP430 is designed for. It is useful because it shuts down certain areas of the CPU in order to save power. Since most embedded systems need to be energy efficient, low power modes of operation are employed. The MSP430 features five modes of operation, yet the most popular 3 are the following (the others can be found in the datasheet):
+              1. Active mode (AM), I ≈ 300 uA
+                                     a. All clocks are active
+
+               2. Low-power mode 0 (LPM0), I ≈ 85uA
+                                     a. CPU is disabled
+                                     b. ACLK and SMCLK remain active, MCLK is disabled
+
+               3. Low-power mode 3 (LPM3), I ≈ 1uA
+                                     a. CPU is disabled
+                                     b. MCLK and SMCLK disabled
+                                     c. ACLK remains active
+                                     d. DCO’s dc-generator is disabled
+The interesting thing about these modes of operation is that interrupts can wake up the device from any low power mode, process, and decide whether to restore the low power or active mode. 
+Programming
+The watchdog timer is set to interval mode by setting its register to WDTCTL = WDT_MDLY_32.  This setting is defined in the msp430g2231.h include file.  It sets the watchdog to interrupt every ≈32ms when clocking from a 1Mhz SMCLK.  An interrupt counter is set up so that the device goes to low power after ≈ 8 seconds ( 32ms * 250 = 8 s).  The watchdog interrupt counter is cleared every time P1 interrupts, as well as wakes up if the device is currently in low power mode. 
+
+Key things to remember:
+Enable WDT interrupt
+Enable P1 and global interrupts
+Clear P1 interrupt flag before exiting
+When setting LPM3, the GIE must also be set to allow interrupts
+ 
